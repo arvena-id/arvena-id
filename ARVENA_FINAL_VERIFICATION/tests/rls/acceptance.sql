@@ -1,9 +1,11 @@
 \set ON_ERROR_STOP on
 -- Utility to impersonate a JWT user in the compatibility harness.
-create or replace function pg_temp.as_user(p uuid) returns void language plpgsql as $$ begin perform set_config('request.jwt.claim.sub',p::text,true); end $$;
+-- The setting must persist across autocommit statements; transaction-local=true
+-- would clear the subject immediately after the helper SELECT completes.
+create or replace function pg_temp.as_user(p uuid) returns void language plpgsql as $$ begin perform set_config('request.jwt.claim.sub',p::text,false); end $$;
 
 -- Unauthenticated tenant SELECT must return no rows.
-select set_config('request.jwt.claim.sub','',true);
+select set_config('request.jwt.claim.sub','',false);
 do $$ begin if (select count(*) from customers) <> 0 then raise exception 'unauthenticated tenant leak'; end if; end $$;
 
 -- Org A owner: own Customer visible, Org B Customer invisible.
