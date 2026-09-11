@@ -123,11 +123,12 @@ insert into leads(id,organization_id,customer_id,title,status,temperature,source
 ('b3000001-0000-0000-0000-000000000001','bbbbbbbb-0000-0000-0000-000000000001','b2000001-0000-0000-0000-000000000001','Lead B1','NEW','WARM','MANUAL','b1000004-0000-0000-0000-000000000001','USD') on conflict do nothing;
 
 insert into quotes(id,organization_id,quote_number,customer_id,lead_id,owner_member_id,status,currency_code,currency_exponent,subtotal_minor,discount_minor,tax_minor,total_minor,expires_at,issued_at,customer_snapshot,organization_snapshot,calculator_version) values
-('a4000001-0000-0000-0000-000000000001','aaaaaaaa-0000-0000-0000-000000000001','QTE-A-1','a2000001-0000-0000-0000-000000000001','a3000001-0000-0000-0000-000000000001','a1000004-0000-0000-0000-000000000001','ISSUED','IDR',0,100000,0,0,100000,now()+interval '14 days',now(),'{}','{}','v1'),
-('b4000001-0000-0000-0000-000000000001','bbbbbbbb-0000-0000-0000-000000000001','QTE-B-1','b2000001-0000-0000-0000-000000000001','b3000001-0000-0000-0000-000000000001','b1000004-0000-0000-0000-000000000001','ISSUED','USD',2,10000,0,0,10000,now()+interval '14 days',now(),'{}','{}','v1') on conflict do nothing;
+('a4000001-0000-0000-0000-000000000001','aaaaaaaa-0000-0000-0000-000000000001','QTE-A-1','a2000001-0000-0000-0000-000000000001','a3000001-0000-0000-0000-000000000001','a1000004-0000-0000-0000-000000000001','DRAFT','IDR',0,100000,0,0,100000,now()+interval '14 days',null,'{}','{}','v1'),
+('b4000001-0000-0000-0000-000000000001','bbbbbbbb-0000-0000-0000-000000000001','QTE-B-1','b2000001-0000-0000-0000-000000000001','b3000001-0000-0000-0000-000000000001','b1000004-0000-0000-0000-000000000001','DRAFT','USD',2,10000,0,0,10000,now()+interval '14 days',null,'{}','{}','v1') on conflict do nothing;
 insert into quote_items(id,organization_id,quote_id,name_snapshot,quantity,unit_price_minor,gross_minor,net_minor,total_minor,sort_order) values
 ('a4100001-0000-0000-0000-000000000001','aaaaaaaa-0000-0000-0000-000000000001','a4000001-0000-0000-0000-000000000001','Service A',1,100000,100000,100000,100000,1),
 ('b4100001-0000-0000-0000-000000000001','bbbbbbbb-0000-0000-0000-000000000001','b4000001-0000-0000-0000-000000000001','Service B',1,10000,10000,10000,10000,1) on conflict do nothing;
+update quotes set status='ISSUED', issued_at=now() where id in ('a4000001-0000-0000-0000-000000000001','b4000001-0000-0000-0000-000000000001');
 
 insert into jobs(id,organization_id,job_number,customer_id,lead_id,title,status,priority,primary_address_id,currency_code,version) values
 ('a5000001-0000-0000-0000-000000000001','aaaaaaaa-0000-0000-0000-000000000001','JOB-A-1','a2000001-0000-0000-0000-000000000001','a3000001-0000-0000-0000-000000000001','Job A1','CONFIRMED','NORMAL','a2100001-0000-0000-0000-000000000001','IDR',1),
