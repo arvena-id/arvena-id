@@ -2011,31 +2011,31 @@ language sql stable security definer set search_path=public,app as $$
 $$;
 
 -- Workers must not read full Customer or Job base rows. Assigned execution context is exposed through a purpose-built function below.
-create or replace function app.can_view_customer(p_org uuid,p_customer uuid) returns boolean
+create or replace function app.can_view_customer(p_org uuid,p_id uuid) returns boolean
 language plpgsql stable security definer set search_path=public,app as $$
 declare role_key text:=app.current_role_key(p_org); me uuid:=app.current_member_id(p_org);
 begin
  if me is null then return false; end if;
  if role_key='WORKER' then return false; end if;
  if role_key in ('OWNER','ADMIN') then return app.has_permission(p_org,'customer.view'); end if;
- if role_key='SALES' then return app.has_permission(p_org,'customer.view') and exists(select 1 from customers c where c.organization_id=p_org and c.id=p_customer and c.assigned_sales_id=me); end if;
+ if role_key='SALES' then return app.has_permission(p_org,'customer.view') and exists(select 1 from customers c where c.organization_id=p_org and c.id=p_id and c.assigned_sales_id=me); end if;
  if role_key='SUPERVISOR' then return app.has_permission(p_org,'customer.view') and exists(
    select 1 from jobs j join visits v on v.organization_id=j.organization_id and v.job_id=j.id join visit_assignments a on a.organization_id=v.organization_id and a.visit_id=v.id and a.removed_at is null
-   where j.organization_id=p_org and j.customer_id=p_customer and (a.member_id=me or exists(select 1 from member_team_scope s where s.organization_id=p_org and s.supervisor_member_id=me and s.member_id=a.member_id))
+   where j.organization_id=p_org and j.customer_id=p_id and (a.member_id=me or exists(select 1 from member_team_scope s where s.organization_id=p_org and s.supervisor_member_id=me and s.member_id=a.member_id))
  ); end if;
- if role_key='FINANCE' then return app.has_permission(p_org,'customer.view') and exists(select 1 from invoices i where i.organization_id=p_org and i.customer_id=p_customer); end if;
+ if role_key='FINANCE' then return app.has_permission(p_org,'customer.view') and exists(select 1 from invoices i where i.organization_id=p_org and i.customer_id=p_id); end if;
  return false;
 end $$;
 
-create or replace function app.can_view_job(p_org uuid,p_job uuid) returns boolean
+create or replace function app.can_view_job(p_org uuid,p_id uuid) returns boolean
 language plpgsql stable security definer set search_path=public,app as $$
 declare role_key text:=app.current_role_key(p_org); me uuid:=app.current_member_id(p_org);
 begin
  if me is null or not app.has_permission(p_org,'job.view') then return false; end if;
  if role_key='WORKER' then return false; end if;
  if role_key in ('OWNER','ADMIN') then return true; end if;
- if role_key='SALES' then return exists(select 1 from jobs j join customers c on c.organization_id=j.organization_id and c.id=j.customer_id where j.organization_id=p_org and j.id=p_job and c.assigned_sales_id=me); end if;
- if role_key='SUPERVISOR' then return exists(select 1 from visits v join visit_assignments a on a.organization_id=v.organization_id and a.visit_id=v.id and a.removed_at is null where v.organization_id=p_org and v.job_id=p_job and (a.member_id=me or exists(select 1 from member_team_scope s where s.organization_id=p_org and s.supervisor_member_id=me and s.member_id=a.member_id))); end if;
+ if role_key='SALES' then return exists(select 1 from jobs j join customers c on c.organization_id=j.organization_id and c.id=j.customer_id where j.organization_id=p_org and j.id=p_id and c.assigned_sales_id=me); end if;
+ if role_key='SUPERVISOR' then return exists(select 1 from visits v join visit_assignments a on a.organization_id=v.organization_id and a.visit_id=v.id and a.removed_at is null where v.organization_id=p_org and v.job_id=p_id and (a.member_id=me or exists(select 1 from member_team_scope s where s.organization_id=p_org and s.supervisor_member_id=me and s.member_id=a.member_id))); end if;
  return false;
 end $$;
 
