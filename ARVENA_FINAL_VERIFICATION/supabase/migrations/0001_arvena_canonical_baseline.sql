@@ -1310,6 +1310,9 @@ create or replace function app.can_access_entity(p_org uuid,p_type text,p_id uui
  else return false; end case; end $$;
 
 -- Views intentionally expose foreign keys used for drill-through; underlying security-invoker views retain RLS.
+drop view if exists quote_list_v;
+drop view if exists job_list_v;
+drop view if exists invoice_list_v;
 create or replace view quote_list_v with(security_invoker=true) as
 select q.id,q.organization_id,q.customer_id,q.lead_id,q.owner_member_id,q.quote_number,c.name customer,q.total_minor,q.currency_code,q.currency_exponent,q.status,q.expires_at,q.issued_at,q.accepted_at,q.created_at,q.updated_at,q.version,m.display_name sales
 from quotes q join customers c on c.organization_id=q.organization_id and c.id=q.customer_id left join organization_members m on m.organization_id=q.organization_id and m.id=q.owner_member_id where q.archived_at is null;
