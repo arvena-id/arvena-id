@@ -332,7 +332,7 @@ declare actor uuid:=app.require_permission(p_org,'api.manage'); raw text; full_t
 begin
  if not app.feature_enabled(p_org,'feature.public_api') then raise exception 'ARV-USAGE-6001 public API not entitled'; end if; if cardinality(coalesce(p_scopes,'{}'::text[]))=0 then raise exception 'ARV-VALIDATION-1001 at least one API scope required'; end if;
  h:=app.command_hash(jsonb_build_array(p_name,to_jsonb(p_scopes),p_expires)); perform app.command_lock(p_org,'api_token.create',p_key); replay:=app.idempotency_existing(p_org,actor,'api_token.create',p_key,h); if replay is not null then return jsonb_build_object('token_id',replay->>'token_id','token',null,'replayed',true); end if;
- raw:=encode(gen_random_bytes(32),'hex'); full_token:='arv_live_'||raw; hid:=encode(digest(full_token,'sha256'),'hex'); prefix:=left(full_token,17);
+ raw:=encode(extensions.gen_random_bytes(32),'hex'); full_token:='arv_live_'||raw; hid:=encode(extensions.digest(full_token,'sha256'),'hex'); prefix:=left(full_token,17);
  insert into api_tokens(id,organization_id,name,token_prefix,token_hash,scopes,created_by,expires_at) values(idv,p_org,trim(p_name),prefix,hid,p_scopes,actor,p_expires);
  perform app.idempotency_commit(p_org,actor,'api_token.create',p_key,h,jsonb_build_object('token_id',idv)); return jsonb_build_object('token_id',idv,'token',full_token,'replayed',false);
 end $$;
@@ -474,7 +474,7 @@ begin
    if not exists(select 1 from public.api_scope_catalog c where c.scope_key=scope and c.active and app.has_permission(p_org,c.required_permission)) then raise exception 'ARV-PERM-1001 API scope exceeds actor authority'; end if;
  end loop;
  h:=app.command_hash(jsonb_build_array(p_name,to_jsonb((select array_agg(distinct x order by x) from unnest(p_scopes) x)),p_expires)); perform app.command_lock(p_org,'api_token.create',p_key); replay:=app.idempotency_existing(p_org,actor,'api_token.create',p_key,h); if replay is not null then return jsonb_build_object('token_id',replay->>'token_id','token',null,'replayed',true); end if;
- raw:=encode(gen_random_bytes(32),'hex'); full_token:='arv_live_'||raw; hid:=encode(digest(full_token,'sha256'),'hex'); prefix:=left(full_token,17);
+ raw:=encode(extensions.gen_random_bytes(32),'hex'); full_token:='arv_live_'||raw; hid:=encode(extensions.digest(full_token,'sha256'),'hex'); prefix:=left(full_token,17);
  insert into public.api_tokens(id,organization_id,name,token_prefix,token_hash,scopes,created_by,expires_at) values(idv,p_org,trim(p_name),prefix,hid,(select array_agg(distinct x order by x) from unnest(p_scopes) x),actor,p_expires);
  perform app.idempotency_commit(p_org,actor,'api_token.create',p_key,h,jsonb_build_object('token_id',idv)); return jsonb_build_object('token_id',idv,'token',full_token,'replayed',false);
 end $$;
