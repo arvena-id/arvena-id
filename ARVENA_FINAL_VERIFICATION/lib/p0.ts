@@ -26,5 +26,6 @@ export const commands = new Set([
  "create_invoice","update_invoice_draft","issue_invoice","record_payment","reverse_payment","void_invoice",
  "create_asset","update_asset_fields","create_recurring_rule","update_recurring_rule","skip_recurring_occurrence","deactivate_recurring_rule",
  "invite_member","update_member","create_media","finalize_media","fail_media","retry_media","respond_checklist","create_note",
- "update_import_mapping","stage_import_rows","set_import_duplicate_decision","commit_import_job","create_export_job","register_export_result","fail_export_job","upsert_notification_preference"
+ "create_import_job","attach_import_source","update_import_mapping","stage_import_rows","set_import_duplicate_decision","commit_import_job",
+ "create_export_job","refresh_export_expiry","register_export_result","fail_export_job","process_client_actions","upsert_notification_preference"
 ]);
