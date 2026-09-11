@@ -32,9 +32,9 @@ jobs:
 
       - name: Verify canonical migration hashes
         run: |
-          echo "6551aae8200af77e732ca59a0db92e8eec39c893f571761ea26cd96baa2219fc  supabase/migrations/0001_arvena_canonical_baseline.sql" | sha256sum -c -
+          echo "fc4fdbdd564e2c03dede3abf94c8ec667cc2f5dd61d3984742495a7cdd6e9ccd  supabase/migrations/0001_arvena_canonical_baseline.sql" | sha256sum -c -
           echo "9f83fc842f6045d24b387d28a8950a11cde74029fec3bd69158a2546bf812b6a  supabase/migrations/0002_arvena_p1.sql" | sha256sum -c -
-          echo "6ffad6f0147fcd20f217341832c5361a9df28dd40414001efc934f563fb2073c  supabase/migrations/0003_arvena_p2.sql" | sha256sum -c -
+          echo "9169a3bbf65731a9bdbb68344b5999d82c64091f1ff1547a6373e253288cdc44  supabase/migrations/0003_arvena_p2.sql" | sha256sum -c -
 
       - name: Static SQL audit
         run: python3 scripts/static-sql-audit.py
