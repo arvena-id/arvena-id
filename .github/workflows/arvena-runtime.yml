@@ -1,0 +1,105 @@
+name: ARVENA Runtime Verification
+
+on:
+  push:
+    branches: [arvena-final-green]
+  workflow_dispatch:
+
+jobs:
+  database-runtime:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ARVENA_FINAL_VERIFICATION
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Initialize local Supabase config
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Start clean local Supabase stack and apply canonical migrations
+        run: supabase start
+
+      - name: Export disposable database URL
+        run: echo "ARVENA_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres" >> "$GITHUB_ENV"
+
+      - name: Verify canonical migration hashes
+        run: |
+          echo "2cddd0ca16d2f10c2252354d5d7d0bca86ac3b96a33b1fc9294747a5505ce6f8  supabase/migrations/0001_arvena_canonical_baseline.sql" | sha256sum -c -
+          echo "9f83fc842f6045d24b387d28a8950a11cde74029fec3bd69158a2546bf812b6a  supabase/migrations/0002_arvena_p1.sql" | sha256sum -c -
+          echo "6ffad6f0147fcd20f217341832c5361a9df28dd40414001efc934f563fb2073c  supabase/migrations/0003_arvena_p2.sql" | sha256sum -c -
+
+      - name: Static SQL audit
+        run: python3 scripts/static-sql-audit.py
+
+      - name: Load deterministic acceptance fixtures
+        run: psql "$ARVENA_TEST_DATABASE_URL" -X -v ON_ERROR_STOP=1 -f tests/db/fixtures.sql
+
+      - name: DB acceptance
+        run: psql "$ARVENA_TEST_DATABASE_URL" -X -v ON_ERROR_STOP=1 -f tests/db/acceptance.sql
+
+      - name: RLS acceptance as authenticated role
+        run: psql "$ARVENA_TEST_DATABASE_URL" -X -v ON_ERROR_STOP=1 -c "set role authenticated" -f tests/rls/acceptance.sql
+
+      - name: Concurrency acceptance
+        run: bash tests/concurrency/run-concurrency.sh
+
+      - name: Stop local Supabase stack
+        if: always()
+        run: supabase stop --no-backup
+
+  e2e-runtime:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ARVENA_FINAL_VERIFICATION
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+      ARVENA_CRON_SECRET: test-cron-secret
+      ARVENA_EXPORT_BUCKET: arvena-private
+      ARVENA_MEDIA_BUCKET: arvena-private
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Production build
+        run: npm run build
+
+      - name: Start production server
+        run: |
+          npm run start -- -H 127.0.0.1 > /tmp/arvena-next.log 2>&1 &
+          echo $! > /tmp/arvena-next.pid
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/login >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/arvena-next.log
+          exit 1
+
+      - name: Playwright E2E
+        run: npm run test:e2e
+
+      - name: Show server log on failure
+        if: failure()
+        run: cat /tmp/arvena-next.log || true
