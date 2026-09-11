@@ -1,0 +1,44 @@
+name: ARVENA Canonical View Repair
+
+on:
+  push:
+    branches: [arvena-final-green]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arvena-final-green
+          fetch-depth: 0
+
+      - name: Repair proven PostgreSQL view replacement defect
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('ARVENA_FINAL_VERIFICATION/supabase/migrations/0001_arvena_canonical_baseline.sql')
+          s = p.read_text()
+          marker = '-- Views intentionally expose foreign keys used for drill-through; underlying security-invoker views retain RLS.\n'
+          addition = marker + 'drop view if exists quote_list_v;\ndrop view if exists job_list_v;\ndrop view if exists invoice_list_v;\n'
+          if marker not in s:
+              raise SystemExit('expected view-redefinition marker not found; refusing broad rewrite')
+          if 'drop view if exists quote_list_v;' in s:
+              raise SystemExit('repair already present; refusing duplicate rewrite')
+          s = s.replace(marker, addition, 1)
+          p.write_text(s)
+          PY
+          git diff --check
+          sha256sum ARVENA_FINAL_VERIFICATION/supabase/migrations/0001_arvena_canonical_baseline.sql
+
+      - name: Commit canonical repair
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ARVENA_FINAL_VERIFICATION/supabase/migrations/0001_arvena_canonical_baseline.sql
+          git commit -m 'fix(db): recreate expanded list views safely in canonical baseline'
+          git push origin HEAD:arvena-final-green
