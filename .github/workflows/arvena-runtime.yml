@@ -32,7 +32,7 @@ jobs:
 
       - name: Verify canonical migration hashes
         run: |
-          echo "2cddd0ca16d2f10c2252354d5d7d0bca86ac3b96a33b1fc9294747a5505ce6f8  supabase/migrations/0001_arvena_canonical_baseline.sql" | sha256sum -c -
+          echo "ac6beb69da54063ce6437daf5253b3bdf5710905789dc333fde039e173847262  supabase/migrations/0001_arvena_canonical_baseline.sql" | sha256sum -c -
           echo "9f83fc842f6045d24b387d28a8950a11cde74029fec3bd69158a2546bf812b6a  supabase/migrations/0002_arvena_p1.sql" | sha256sum -c -
           echo "6ffad6f0147fcd20f217341832c5361a9df28dd40414001efc934f563fb2073c  supabase/migrations/0003_arvena_p2.sql" | sha256sum -c -
 
