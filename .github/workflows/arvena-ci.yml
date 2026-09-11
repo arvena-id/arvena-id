@@ -1,0 +1,39 @@
+name: ARVENA Final Verification
+
+on:
+  push:
+    branches: [arvena-final-green]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ARVENA_FINAL_VERIFICATION
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+      ARVENA_CRON_SECRET: test-cron-secret
+      ARVENA_EXPORT_BUCKET: arvena-private
+      ARVENA_MEDIA_BUCKET: arvena-private
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ARVENA_FINAL_VERIFICATION/package-lock.json
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit and source tests
+        run: npm run test
+      - name: Production build
+        run: npm run build
