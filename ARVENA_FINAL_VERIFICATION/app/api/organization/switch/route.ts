@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server";import { createServerSupabase } from "@/lib/supabase/server";
+export async function POST(request:Request){const supabase=await createServerSupabase();const {data:{user}}=await supabase.auth.getUser();if(!user)return NextResponse.json({error:"Authentication required"},{status:401});const {organization_id}=await request.json();const {data,error}=await supabase.rpc("set_active_organization",{p_org:organization_id});if(error)return NextResponse.json({error:error.message},{status:403});return NextResponse.json({data});}

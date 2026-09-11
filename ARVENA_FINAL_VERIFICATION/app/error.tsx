@@ -1,0 +1,1 @@
+"use client"; export default function Error({error,reset}:{error:Error;reset:()=>void}){return <main className="page"><div className="error-state"><h1>Halaman belum dapat dimuat</h1><p>{error.message}</p><button className="btn" onClick={reset}>Coba lagi</button></div></main>}

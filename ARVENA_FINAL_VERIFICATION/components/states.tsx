@@ -1,0 +1,3 @@
+export function EmptyState({title="Belum ada data",message="Tambahkan record pertama untuk mulai menggunakan workflow ini.",action}:{title?:string;message?:string;action?:React.ReactNode}){return <div className="empty"><h3>{title}</h3><p>{message}</p>{action}</div>}
+export function ErrorState({message}:{message:string}){return <div className="error-state"><strong>Data belum dapat dimuat.</strong><p>{message}</p><p>Data yang sudah tersimpan tidak diubah. Coba lagi setelah koneksi atau izin diperiksa.</p></div>}
+export function LoadingRows(){return <div className="stack"><div className="skeleton"/><div className="skeleton"/><div className="skeleton"/></div>}

@@ -1,0 +1,1 @@
+import { OnboardingBusiness } from "@/components/onboarding-business";export default function Page(){return <main className="page"><div className="page-head"><div><h1>Business</h1><p>Buat tenant ARVENA Anda.</p></div></div><OnboardingBusiness/></main>}

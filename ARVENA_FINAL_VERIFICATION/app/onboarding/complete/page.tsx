@@ -1,0 +1,1 @@
+import Link from "next/link";export default function Page(){return <main className="page"><div className="empty"><h3>Onboarding selesai</h3><p>Lanjut ke Dashboard untuk menjalankan operasi.</p><Link className="btn btn-primary" href="/dashboard">Buka Dashboard</Link></div></main>}
