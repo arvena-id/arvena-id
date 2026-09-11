@@ -31,7 +31,25 @@ jobs:
         run: npm run lint
       - name: Typecheck
         run: npm run typecheck
-      - name: Unit and source tests
+      - name: Baseline source test
+        continue-on-error: true
+        run: npx vitest run tests/unit/repository-baseline.test.ts --reporter=verbose
+      - name: Application surface test
+        continue-on-error: true
+        run: npx vitest run tests/integration/application-surface.test.ts --reporter=verbose
+      - name: Offline source test
+        continue-on-error: true
+        run: npx vitest run tests/offline/offline-contract.test.ts --reporter=verbose
+      - name: Import export source test
+        continue-on-error: true
+        run: npx vitest run tests/import-export/import-export-source.test.ts --reporter=verbose
+      - name: Finance source test
+        continue-on-error: true
+        run: npx vitest run tests/finance/money-source.test.ts --reporter=verbose
+      - name: Recurring source test
+        continue-on-error: true
+        run: npx vitest run tests/recurring/recurrence-source.test.ts --reporter=verbose
+      - name: Unit and source tests gate
         run: npm run test
       - name: Production build
         run: npm run build
