@@ -54,7 +54,7 @@ create table if not exists public.organizations(
   id uuid primary key default gen_random_uuid(), name text not null, slug text not null, country_code text not null check(country_code ~ '^[A-Z]{2}$'),
   currency_code text not null references public.currency_definitions(currency_code), timezone text not null, locale text not null default 'en',
   industry_template_version_id uuid references public.industry_template_versions(id), status text not null default 'ACTIVE' check(status in ('ACTIVE','SUSPENDED','ARCHIVED')),
-  logo_media_id uuid, created_at timestamptz not null default now(), updated_at timestamptz not null default now(), unique(id), unique(id,id)
+  logo_media_id uuid, created_at timestamptz not null default now(), updated_at timestamptz not null default now(), unique(id)
 );
 create unique index if not exists organizations_active_slug_uq on public.organizations(lower(slug)) where status <> 'ARCHIVED';
 create trigger trg_organizations_updated before update on public.organizations for each row execute function app.set_updated_at();
