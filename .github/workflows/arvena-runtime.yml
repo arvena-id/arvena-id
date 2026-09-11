@@ -16,7 +16,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.117.0-beta.21
 
       - name: Initialize local Supabase config
         run: |
